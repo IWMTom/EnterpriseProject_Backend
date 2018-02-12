@@ -2,5 +2,5 @@
 
 Route::get('/', function()
 {
-    return 'Enterprise Project Backend';
+    return 'Shipr Backend';
 });
