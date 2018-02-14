@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Validator;
 
-class PassportController extends Controller
+class UserController extends Controller
 {
     public $successStatus = 200;
 
