@@ -24,7 +24,7 @@ class UserController extends Controller
             'full_name'         => 'required',
             'known_as'          => 'required',
             'dob'               => 'required',
-            'city'              => 'required'
+            'location'          => 'required'
         ]);
 
         if ($validator->fails())
