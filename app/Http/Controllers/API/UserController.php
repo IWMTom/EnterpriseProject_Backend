@@ -16,11 +16,13 @@ class UserController extends Controller
 
     public function DoRegister(Request $request)
     {
+        $eighteenYearsAgo = Carbon::now()->subYears(18)->format('Y-m-d');
+        
         $validator = Validator::make($request->all(),
         [
             'full_name'         => 'required',
             'known_as'          => 'required',
-            'dob'               => 'required',
+            'dob'               => 'required|date|before:'.$eighteenYearsAgo,
             'postcode'          => array('required', 'regex:/^[a-zA-Z]{1,2}([0-9]{1,2}|[0-9][a-zA-Z])\s*[0-9][a-zA-Z]{2}$/'),
             'phone_number'      => array('required', 'regex:/^(\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/'),
             'email'             => 'required|email',
