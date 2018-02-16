@@ -18,18 +18,19 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(),
         [
-            'email'             => 'required|email',
-            'password'          => 'required',
-            'confirm_password'  => 'required|same:password',
             'full_name'         => 'required',
             'known_as'          => 'required',
             'dob'               => 'required',
-            'location'          => 'required'
+            'postcode'          => array('required', 'regex:/^[a-zA-Z]{1,2}([0-9]{1,2}|[0-9][a-zA-Z])\s*[0-9][a-zA-Z]{2}$/'),
+            'phone_number'      => array('required', 'regex:/^(\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/'),
+            'email'             => 'required|email',
+            'password'          => 'required',
+            'confirm_password'  => 'required|same:password'
         ]);
 
         if ($validator->fails())
         {
-            return response()->json(['error' => $validator->errors()], 401);            
+            return response()->json(['error' => $validator->errors()], 400);            
         }
 
         $input              = $request->all();
@@ -53,7 +54,7 @@ class UserController extends Controller
         }
         else
         {
-            return response()->json(['error' => 'Email address or password invalid'], 401);
+            return response()->json(['error' => 'Email address or password invalid'], 400);
         }
     }
 
