@@ -18,6 +18,10 @@ class UserController extends Controller
     {
         $eighteenYearsAgo = Carbon::now()->subYears(18)->format('Y-m-d');
         
+        $messages = array(
+            'before'            => 'You must be aged 18 or over!'
+        );
+
         $validator = Validator::make($request->all(),
         [
             'full_name'         => 'required',
@@ -28,7 +32,7 @@ class UserController extends Controller
             'email'             => 'required|email',
             'password'          => 'required',
             'confirm_password'  => 'required|same:password'
-        ]);
+        ], $messages);
 
         if ($validator->fails())
         {
