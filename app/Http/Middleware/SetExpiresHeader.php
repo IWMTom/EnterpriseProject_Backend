@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 
 class SetExpiresHeader
@@ -10,7 +11,7 @@ class SetExpiresHeader
     {
         $response = $next($request);
         
-        $response->header('Expires', 0);
+        $response->header('Expires', Carbon::now()->toRfc1123String());
 
         return $response;
     }
