@@ -29,23 +29,23 @@ class UserController extends Controller
             'dob'               => 'required|date|before:'.$eighteenYearsAgo,
             'postcode'          => array('required', 'regex:/^[a-zA-Z]{1,2}([0-9]{1,2}|[0-9][a-zA-Z])\s*[0-9][a-zA-Z]{2}$/'),
             'phone_number'      => array('required', 'regex:/^(\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/'),
-            'email'             => 'required|email',
+            'email'             => 'required|email|unique:users',
             'password'          => 'required',
             'confirm_password'  => 'required|same:password'
         ], $messages);
 
         if ($validator->fails())
         {
-            return response()->json(['error' => $validator->errors()], 400);            
+            return response()->json(['error' => $validator->errors()], 200);            
         }
 
         $input              = $request->all();
         $input['password']  = Hash::make($input['password']);
         $input['reg_ip']    = $request->ip();
+        $input['dob']        = Carbon::createFromFormat('d-m-Y', $input['dob']);
 
         $user               = User::create($input);
         $success['token']   = $user->createToken('MyApp')->accessToken;
-        $success['name']    = $user->name;
 
         return response()->json(['success' => $success], $this->successStatus);
     }
@@ -60,7 +60,7 @@ class UserController extends Controller
         }
         else
         {
-            return response()->json(['error' => 'Email address or password invalid'], 400);
+            return response()->json(['error' => 'Email address or password invalid'], 200);
         }
     }
 
