@@ -17,6 +17,15 @@ use Illuminate\Http\Request;
 Route::post('login', 'API\UserController@DoLogin');
 Route::post('register', 'API\UserController@DoRegister');
 
-Route::group(['middleware' => 'auth:api'], function(){
-	Route::post('user/details', 'API\UserController@GetDetails');
+Route::group(['middleware' => 'auth:api'], function()
+{
+	Route::group(['prefix' => 'user'], function()
+	{
+		Route::post('details', 'API\UserController@GetDetails');
+	});
+
+	Route::group(['prefix' => 'listing'], function()
+	{
+		Route::post('new', 'API\ListingController@NewListing');
+	});
 });
