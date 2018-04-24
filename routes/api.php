@@ -27,5 +27,6 @@ Route::group(['middleware' => 'auth:api'], function()
 	Route::group(['prefix' => 'listing'], function()
 	{
 		Route::post('new', 'API\ListingController@NewListing');
+		Route::post('list', 'API\ListingController@GetListings');
 	});
 });

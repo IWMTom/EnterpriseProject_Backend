@@ -33,10 +33,20 @@ class ListingController extends Controller
 
         $input                      = $request->all();
         $input['user_id']           = Auth::id();
+        $input['collection_city']   = Listing::getCityFromAddress($input['collection_location']);
+        $input['delivery_city']     = Listing::getCityFromAddress($input['delivery_location']);
+        $input['distance']          = Listing::getDistance($input['collection_location'], $input['delivery_location']);
         $listing                    = Listing::create($input);
         
         $success['id']              = $listing->id;
 
         return response()->json(['success' => $success], 200);        
+    }
+
+    public function GetListings()
+    {
+        $listings = Listing::all();
+
+        return response()->json(['success' => $listings], 200);
     }
 }
