@@ -17,6 +17,11 @@ use Illuminate\Http\Request;
 Route::post('login', 'API\UserController@DoLogin');
 Route::post('register', 'API\UserController@DoRegister');
 
+Route::group(['prefix' => 'user'], function()
+{
+	Route::get('{id}/photo', 'API\UserController@GetProfilePhoto')->where('id', '[0-9]+');
+});
+
 Route::group(['middleware' => 'auth:api'], function()
 {
 	Route::group(['prefix' => 'user'], function()

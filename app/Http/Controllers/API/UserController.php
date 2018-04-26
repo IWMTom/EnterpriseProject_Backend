@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
@@ -89,5 +90,13 @@ class UserController extends Controller
     {
         $user = Auth::user();
         return response()->json(['success' => $user], 200);
+    }
+
+    public function GetProfilePhoto($id)
+    {
+        $user       = User::find($id);
+        $img        = Image::make($user->profile_photo);
+        
+        return $img->response('jpg');
     }
 }

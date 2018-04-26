@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -19,10 +20,11 @@ class Bid extends Model
 
     protected $appends = ['username'];
 
-
     public function getUsernameAttribute()
     {
-    	return "Big Boy";
+		$user = User::find($this->user_id);
+
+		return $user->known_as;
     }
 
     public function listing()
