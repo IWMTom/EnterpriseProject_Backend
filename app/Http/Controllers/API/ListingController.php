@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\User;
 use App\Listing;
+use App\Bid;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,5 +49,13 @@ class ListingController extends Controller
         $listings = Listing::all();
 
         return response()->json(['success' => $listings], 200);
+    }
+
+    public function GetBids($listing_id)
+    {
+        $listing    = Listing::find($listing_id);
+        $bids       = $listing->bids;
+
+        return response()->json(['success' => $bids], 200);
     }
 }

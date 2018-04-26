@@ -53,7 +53,7 @@ class Listing extends Model
 	    	{
 	    		if (in_array('postal_town', $resp['results'][0]['address_components'][$i]['types']))
 	    		{
-	    			return $resp['results'][0]['address_components'][2]['long_name']; 
+	    			return $resp['results'][0]['address_components'][$i]['long_name']; 
 	    		}
 	    	}       
 	    }
@@ -62,4 +62,9 @@ class Listing extends Model
         	return false;
     	}
 	}
+
+	public function bids()
+    {
+        return $this->hasMany('App\Bid', 'listing_id', 'id');
+    }
 }
