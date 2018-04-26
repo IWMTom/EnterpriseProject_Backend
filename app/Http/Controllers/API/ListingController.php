@@ -58,4 +58,19 @@ class ListingController extends Controller
 
         return response()->json(['success' => $bids], 200);
     }
+
+    public function DeleteListing($listing_id)
+    {
+        $listing = Listing::find($listing_id);
+
+        if (Auth::id() == $listing->user_id)
+        {
+            $listing->delete();
+            return response()->json('success', 200);
+        }
+        else
+        {
+            return response()->json('error', 200);
+        }
+    }
 }
