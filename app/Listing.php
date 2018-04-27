@@ -15,7 +15,9 @@ class Listing extends Model
         'user_id', 'item_description', 'item_size', 'important_details', 'collection_location', 'delivery_location', 'collection_city', 'delivery_city', 'distance',
     ];
 
-    protected $hidden = ['deleted_at', 'collection_location', 'delivery_location'];
+    protected $hidden = ['deleted_at', 'collection_location', 'delivery_location', 'bids'];
+
+    protected $appends = ['max_bid', 'min_bid', 'average_bid'];
 
 
     public static function getDistance($from, $to)
@@ -65,6 +67,48 @@ class Listing extends Model
 
 	public function bids()
     {
-        return $this->hasMany('App\Bid', 'listing_id', 'id');
+        return $this->hasMany('App\Bid', 'listing_id', 'id')->orderBy('amount', 'ASC');
+    }
+
+    public function getMaxBidAttribute()
+    {
+    	$amounts = $this->bids->pluck('amount')->toArray();
+
+    	if (empty($amounts))
+    	{
+    		return 0;
+    	}
+    	else
+    	{
+    		return max($amounts);
+    	}
+    }
+
+    public function getMinBidAttribute()
+    {
+    	$amounts = $this->bids->pluck('amount')->toArray();
+
+    	if (empty($amounts))
+    	{
+    		return 0;
+    	}
+    	else
+    	{
+    		return min($amounts);
+    	}
+    }
+
+    public function getAverageBidAttribute()
+    {
+    	$amounts = $this->bids->pluck('amount')->toArray();
+
+    	if (empty($amounts))
+    	{
+    		return 0;
+    	}
+    	else
+    	{
+    		return round((array_sum($amounts) / count($amounts)), 2);
+    	}
     }
 }
