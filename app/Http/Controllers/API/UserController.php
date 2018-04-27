@@ -99,4 +99,13 @@ class UserController extends Controller
 
         return $img->response('jpg');
     }
+
+    public function UpdatePushToken(Request $request)
+    {
+        $user = Auth::user();
+        $user->push_token = $request->push_token;
+        $user->save();
+
+        return response()->json(['success' => array()], 200);
+    }
 }
