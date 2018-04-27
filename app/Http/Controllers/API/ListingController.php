@@ -59,6 +59,31 @@ class ListingController extends Controller
         return response()->json(['success' => $bids], 200);
     }
 
+    public function NewBid(Request $request, $listing_id)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'amount'          => 'required'
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+
+        $listing                    = Listing::find($listing_id);
+        $input                      = $request->all();
+        $input['user_id']           = Auth::id();
+        $input['listing_id']        = $listing_id;
+        $bid                        = Bid::create($input);
+
+        $success['id']              = $bid->id;
+
+        return response()->json(['success' => $success], 200);  
+    }
+
     public function DeleteListing($listing_id)
     {
         $listing = Listing::find($listing_id);
