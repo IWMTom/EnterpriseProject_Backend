@@ -16,7 +16,7 @@ class UserController extends Controller
 {
     public function DoRegister(Request $request)
     {
-        $eighteenYearsAgo = Carbon::now()->subYears(18)->format('Y-m-d');
+        $eighteenYearsAgo = Carbon::now()->subYears(18)->addDay(1)->format('Y-m-d');
         
         $messages = array(
             'before'                        => 'You must be aged 18 or over!',
@@ -96,7 +96,7 @@ class UserController extends Controller
     {
         $user       = User::find($id);
         $img        = Image::make($user->profile_photo);
-        
+
         return $img->response('jpg');
     }
 }
