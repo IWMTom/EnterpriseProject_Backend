@@ -28,6 +28,7 @@ Route::group(['middleware' => 'auth:api'], function()
 	{
 		Route::post('details', 'API\UserController@GetDetails');
 		Route::post('updatePushToken', 'API\UserController@UpdatePushToken');
+		Route::post('test', 'API\ListingController@test');
 	});
 
 	Route::group(['prefix' => 'listing'], function()
