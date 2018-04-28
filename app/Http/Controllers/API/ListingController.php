@@ -54,6 +54,13 @@ class ListingController extends Controller
         return response()->json(['success' => $listings], 200);
     }
 
+    public function FindListing($id)
+    {
+        $listing = Listing::find($id);
+
+        return response()->json(['success' => array($listing)], 200);
+    }
+
     public function GetBids($listing_id)
     {
         $listing    = Listing::find($listing_id);

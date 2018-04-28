@@ -35,6 +35,7 @@ Route::group(['middleware' => 'auth:api'], function()
 	{
 		Route::post('new', 'API\ListingController@NewListing');
 		Route::post('list', 'API\ListingController@GetListings');
+		Route::post('{id}', 'API\ListingController@FindListing')->where('id', '[0-9]+');
 		Route::post('{id}/bids', 'API\ListingController@GetBids')->where('id', '[0-9]+');
 		Route::post('{id}/delete', 'API\ListingController@DeleteListing')->where('id', '[0-9]+');
 		Route::post('{id}/bids/new', 'API\ListingController@NewBid')->where('id', '[0-9]+');
