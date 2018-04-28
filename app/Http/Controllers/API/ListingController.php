@@ -99,6 +99,7 @@ class ListingController extends Controller
         if (Auth::id() == $listing->user_id)
         {
             $listing->delete();
+            $listing->bids()->delete();
             return response()->json('success', 200);
         }
         else
