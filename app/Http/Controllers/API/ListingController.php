@@ -54,6 +54,13 @@ class ListingController extends Controller
         return response()->json(['success' => $listings], 200);
     }
 
+    public function GetListingsByUser()
+    {
+        $listings = Auth::user()->listings;
+
+        return response()->json(['success' => $listings], 200);
+    }
+
     public function FindListing($id)
     {
         $listing = Listing::find($id);

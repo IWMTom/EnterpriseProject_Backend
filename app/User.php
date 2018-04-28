@@ -30,4 +30,9 @@ class User extends Authenticatable
     ];
 
     protected $dates = ['dob'];
+
+    public function listings()
+    {
+        return $this->hasMany('App\Listing', 'user_id', 'id');
+    }
 }
