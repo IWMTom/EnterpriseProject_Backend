@@ -37,8 +37,17 @@ class ListingController extends Controller
 
         $input                      = $request->all();
         $input['user_id']           = Auth::id();
-        $input['collection_city']   = Listing::getCityFromAddress($input['collection_location']);
-        $input['delivery_city']     = Listing::getCityFromAddress($input['delivery_location']);
+
+        $collection_url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.urlencode($input['collection_location']).'&key=AIzaSyB8qGi_9Soez-8yzW_2WfxSJeyJKVATlhw';
+        $collection_json = json_decode(file_get_contents($collection_url), true);
+
+        $delivery_url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.urlencode($input['delivery_location']).'&key=AIzaSyB8qGi_9Soez-8yzW_2WfxSJeyJKVATlhw';
+        $delivery_json = json_decode(file_get_contents($delivery_url), true);
+
+        $input['collection_city']   = Listing::getCityFromAddress($collection_json);
+        $input['delivery_city']     = Listing::getCityFromAddress($delivery_json);
+        $input['collection_coord']  = Listing::getCoordFromAddress($collection_json);
+        $input['delivery_coord']    = Listing::getCoordFromAddress($delivery_json);
         $input['distance']          = Listing::getDistance($input['collection_location'], $input['delivery_location']);
         $listing                    = Listing::create($input);
         

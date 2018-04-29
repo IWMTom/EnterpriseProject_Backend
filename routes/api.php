@@ -28,6 +28,11 @@ Route::group(['middleware' => 'auth:api'], function()
 	{
 		Route::post('details', 'API\UserController@GetDetails');
 		Route::post('updatePushToken', 'API\UserController@UpdatePushToken');
+		Route::post('updatePassword', 'API\UserController@UpdatePassword');
+		Route::post('updateEmail', 'API\UserController@UpdateEmail');
+		Route::post('updatePhoneNumber', 'API\UserController@UpdatePhoneNumber');
+		Route::post('updateUserInfo', 'API\UserController@UpdateUserInfo');
+		Route::post('updateProfilePhoto', 'API\UserController@UpdateProfilePhoto');
 	});
 
 	Route::group(['prefix' => 'listing'], function()

@@ -108,4 +108,136 @@ class UserController extends Controller
 
         return response()->json(['success' => array()], 200);
     }
+
+    public function UpdatePassword(Request $request)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'current_password'          => 'required',
+            'new_password'              => 'required'
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+        else if (!Hash::check($request->current_password, Auth::user()->password))
+        {
+            return response()->json(['error' => "Invalid password!"], 200);
+        }
+        else
+        {
+            $user = Auth::user();
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return response()->json(['success' => ""], 200);
+        }
+    }
+
+    public function UpdateEmail(Request $request)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'email'              => 'required|email|unique:users,email'
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+        else
+        {
+            $user = Auth::user();
+            $user->email = $request->email;
+            $user->save();
+
+            return response()->json(['success' => ""], 200);
+        }        
+    }
+
+    public function UpdatePhoneNumber(Request $request)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'phone_number'              => array('required', 'regex:/^(\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/')
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+        else
+        {
+            $user = Auth::user();
+            $user->phone_number = $request->phone_number;
+            $user->save();
+
+            return response()->json(['success' => ""], 200);
+        }         
+    }
+
+    public function UpdateUserInfo(Request $request)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'postcode'              => array('regex:/^[a-zA-Z]{1,2}([0-9]{1,2}|[0-9][a-zA-Z])\s*[0-9][a-zA-Z]{2}$/')
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+        else
+        {
+            $user = Auth::user();
+
+            if ($request->full_name)
+                $user->full_name = $request->full_name;
+
+            if ($request->known_as)
+                $user->known_as = $request->known_as;
+
+            if ($request->postcode)
+                $user->postcode = $request->postcode;
+
+            $user->save();
+
+            return response()->json(['success' => ""], 200);
+        }    
+    }
+
+    public function UpdateProfilePhoto(Request $request)
+    {
+        $messages = array();
+
+        $validator = Validator::make($request->all(),
+        [
+            'profile_photo'          => 'required'
+        ], $messages);
+
+        if ($validator->fails())
+        {
+            return response()->json(['error' => $validator->errors()], 200);            
+        }
+        else
+        {
+            $user = Auth::user();
+            $user->profile_photo = base64_encode(Image::make($request->profile_photo)->fit(500, 500, function ($constraint)
+                                                                                        {
+                                                                                            $constraint->upsize();
+                                                                                        })->encode()->encoded);
+            $user->save();
+
+            return response()->json(['success' => ""], 200);
+        }
+    }
 }
