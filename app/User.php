@@ -26,13 +26,63 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'reg_ip', 'deleted_at',
     ];
 
     protected $dates = ['dob'];
 
+    protected $appends = ['city'];
+
     public function listings()
     {
-        return $this->hasMany('App\Listing', 'user_id', 'id');
+        return $this->hasMany('App\Listing', 'user_id', 'id')->where('active', '=', '1');
+    }
+
+    public function listings_inactive()
+    {
+        return $this->hasMany('App\Listing', 'user_id', 'id')->where('active', '=', '0');
+    }
+
+    public function remaining_jobs()
+    {
+        return $this->hasManyThrough('App\Contract', 'App\Bid');
+    }
+
+    public function remaining_shipments()
+    {
+        return $this->hasManyThrough('App\Contract', 'App\Listing');
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany('App\Rating', 'reviewed_id', 'id');
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany('App\Contract', 'user_id', 'id');
+    }
+
+    public function getCityAttribute()
+    {
+        $url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.urlencode($this->postcode).'&key=AIzaSyB8qGi_9Soez-8yzW_2WfxSJeyJKVATlhw';
+        $json = json_decode(file_get_contents($url), true);
+
+        return Listing::getCityFromAddress($json);
+    }
+
+    public function GetCoordFromPostcode()
+    {
+        $url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.urlencode($this->postcode).'&key=AIzaSyB8qGi_9Soez-8yzW_2WfxSJeyJKVATlhw';
+        $json = json_decode(file_get_contents($url), true);
+
+        if ($json['status'] == 'OK')
+        {       
+            return $json['results'][0]['geometry']['location']['lat'].','.$json['results'][0]['geometry']['location']['lng'];
+        }
+        else
+        {
+            return false;
+        }
     }
 }

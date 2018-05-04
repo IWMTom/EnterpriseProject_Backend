@@ -69,6 +69,9 @@ class UserController extends Controller
         $user                       = User::create($input);
         $success['token']           = $user->createToken('MyApp')->accessToken;
 
+        $user->postcode_coord       = $user->getCoordFromPostcode();
+        $user->save();
+
         return response()->json(['success' => $success], 200);
     }
 
@@ -90,6 +93,20 @@ class UserController extends Controller
     {
         $user = Auth::user();
         return response()->json(['success' => $user], 200);
+    }
+
+    public function GetUserByID($id)
+    {
+        $user = User::find($id);
+
+        $user_data = array();
+        $user_data['id'] = $user->id;
+        $user_data['known_as'] = $user->known_as;
+        $user_data['city'] = $user->city;
+        $user_data['reputation'] = $user->reputation;
+        $user_data['ratings'] = $user->ratings;
+
+        return response()->json(['success' => $user_data], 200);
     }
 
     public function GetProfilePhoto($id)
@@ -133,7 +150,7 @@ class UserController extends Controller
             $user->password = Hash::make($request->new_password);
             $user->save();
 
-            return response()->json(['success' => ""], 200);
+            return response()->json(['success' => array()], 200);
         }
     }
 
@@ -156,7 +173,7 @@ class UserController extends Controller
             $user->email = $request->email;
             $user->save();
 
-            return response()->json(['success' => ""], 200);
+            return response()->json(['success' => array()], 200);
         }        
     }
 
@@ -179,7 +196,7 @@ class UserController extends Controller
             $user->phone_number = $request->phone_number;
             $user->save();
 
-            return response()->json(['success' => ""], 200);
+            return response()->json(['success' => array()], 200);
         }         
     }
 
@@ -211,7 +228,13 @@ class UserController extends Controller
 
             $user->save();
 
-            return response()->json(['success' => ""], 200);
+            if ($request->postcode)
+            {
+                $user->postcode_coord = $user->getCoordFromPostcode();
+                $user->save();
+            }
+
+            return response()->json(['success' => array()], 200);
         }    
     }
 
@@ -237,7 +260,16 @@ class UserController extends Controller
                                                                                         })->encode()->encoded);
             $user->save();
 
-            return response()->json(['success' => ""], 200);
+            return response()->json(['success' => array()], 200);
         }
+    }
+
+    public function GetDashboardData()
+    {
+        $success['active_listings']     = Auth::user()->listings->count();
+        $success['inactive_listings']   = Auth::user()->listings_inactive->count();
+        $success['remaining_jobs']      = Auth::user()->remaining_jobs->count();
+
+        return response()->json(['success' => $success], 200);
     }
 }

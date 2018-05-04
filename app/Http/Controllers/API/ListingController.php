@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\User;
-use App\Listing;
 use App\Bid;
+use App\Http\Controllers\Controller;
+use App\Listing;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use Validator;
 use sngrl\PhpFirebaseCloudMessaging\Client;
 use sngrl\PhpFirebaseCloudMessaging\Message;
-use sngrl\PhpFirebaseCloudMessaging\Recipient\Device;
 use sngrl\PhpFirebaseCloudMessaging\Notification;
+use sngrl\PhpFirebaseCloudMessaging\Recipient\Device;
 
 class ListingController extends Controller
 {
@@ -58,7 +59,20 @@ class ListingController extends Controller
 
     public function GetListings()
     {
-        $listings = Listing::all();
+        $listings = Listing::where('user_id', '!=', Auth::id())->where('active', '=', '1')->get();
+
+        return response()->json(['success' => $listings], 200);
+    }
+
+    public function GetListingsByRadius($radius)
+    {
+        $longlat = explode(',', Auth::user()->postcode_coord);
+
+        $listings = Listing::select(DB::raw("*, ( 3959 * acos( cos( radians(substring_index(collection_coord, ',', 1)) ) * cos( radians(".$longlat[0].") ) * cos( radians(".$longlat[1].") - radians(substring_index(collection_coord, ',', -1)) ) + sin( radians(substring_index(collection_coord, ',', 1)) ) * sin( radians(".$longlat[0].")))) AS collection_radius, ( 3959 * acos( cos( radians(substring_index(delivery_coord, ',', 1)) ) * cos( radians(".$longlat[0].") ) * cos( radians(".$longlat[1].") - radians(substring_index(delivery_coord, ',', -1)) ) + sin( radians(substring_index(delivery_coord, ',', 1)) ) * sin( radians(".$longlat[0].")))) AS delivery_radius"))
+            ->having('collection_radius', '<', $radius)
+            ->having('delivery_radius', '<', $radius)
+            ->where('active', '=', '1')
+            ->get();
 
         return response()->json(['success' => $listings], 200);
     }
@@ -102,17 +116,36 @@ class ListingController extends Controller
         }
 
         $listing                    = Listing::find($listing_id);
-        $input                      = $request->all();
-        $input['amount']            = ($input['amount'] / 100);
-        $input['user_id']           = Auth::id();
-        $input['listing_id']        = $listing_id;
-        $bid                        = Bid::create($input);
 
-        $success['id']              = $bid->id;
+        if ($listing->user_id == Auth::id())
+        {
+            return response()->json(['error' => "You can't bid on your own listing!"], 200);            
+        }
 
-        $this->SendPushNotification($listing, $bid);
+        if ($existing_bid = Bid::where('user_id', '=', Auth::id())->where('listing_id', '=', $listing_id)->first())
+        {
+            $existing_bid->amount = ($request->amount / 100);
+            $existing_bid->message = $request->message;
+            $existing_bid->save();
 
-        return response()->json(['success' => $success], 200);  
+            $success['id'] = $existing_bid->id;
+
+            return response()->json(['success' => $success], 200);  
+        }
+        else
+        {
+            $input                      = $request->all();
+            $input['amount']            = ($input['amount'] / 100);
+            $input['user_id']           = Auth::id();
+            $input['listing_id']        = $listing_id;
+            $bid                        = Bid::create($input);
+
+            $success['id']              = $bid->id;
+
+            $this->SendPushNotification($listing, $bid);
+
+            return response()->json(['success' => $success], 200);  
+        }
     }
 
     public function DeleteListing($listing_id)
@@ -123,11 +156,11 @@ class ListingController extends Controller
         {
             $listing->delete();
             $listing->bids()->delete();
-            return response()->json('success', 200);
+            return response()->json(['success' => array()], 200);
         }
         else
         {
-            return response()->json('error', 200);
+            return response()->json(['error' => ""], 200);
         }
     }
 
@@ -143,7 +176,127 @@ class ListingController extends Controller
         $message->addRecipient(new Device(User::find($listing->user_id)->push_token));
         $message
             ->setNotification(new Notification($bid->username.' has bid on your listing', 'Bid amount: £'.number_format($bid->amount, 2)));
+        $message->setData(['notification_bid' => $listing->id]);
 
         $response = $client->send($message);
     }
+
+    public function AcceptBid($id)
+    {
+        $bid = Bid::find($id);
+        $listing = $bid->listing;
+
+        if (Auth::id() == $bid->listing->user_id)
+        {
+            if ($listing->active == 1)
+            {
+                $contract = new Contract();
+                $contract->bid_id = $bid->id;
+                $contract->listing_id = $bid->listing->id;
+                $contract->save();
+
+                $listing = $bid->listing;
+                $listing->active = 0;
+                $listing->save();
+
+                $success['id'] = $contract->id;
+
+                return response()->json(['success' => $success], 200);
+            }
+            else
+            {
+                return response()->json(['error' => "A bid has already been accepted for this listing"], 200);
+            }
+        }
+        else
+        {
+            return response()->json(['error' => "Oi, this isn't your listing!"], 200);
+        }
+    }
+
+    public function DeleteBid($id)
+    {
+        $bid = Bid::find($id);
+
+        if ($bid->user_id == Auth::id())
+        {
+            $bid->delete();
+
+            return response()->json(['success' => array()], 200);
+        }
+        else
+        {
+            return response()->json(['error' => "Oi, this isn't your bid!"], 200);
+        }
+    }
+
+    public function BidDetails($id)
+    {
+        $bid = Bid::find($id);
+        $listing = $bid->listing;
+        
+        $success['amount']              = $bid->amount;
+        $success['message']             = $bid->message;
+        $success['item_description']    = $listing->item_description;
+        $success['name']                = $bid->user->known_as;
+        $success['reputation']          = $bid->user->reputation;
+        $success['city']                = $bid->user->city;
+
+        return response()->json(['success' => $success], 200);
+    }
+
+    public function GetContractsCourier()
+    {
+        $contracts      = Auth::user()->remaining_jobs;
+        $return_data    = array();
+
+        foreach ($contracts as $contract)
+        {
+            $data = array();
+            $data['listing_id']         = $contract->listing_id;
+            $data['bid_id']             = $contract->bid_id;
+            $data['item_description']   = $contract->listing->item_description;
+            $data['bid_amount']         = $contract->bid->amount;
+            $data['bid_message']        = $contract->bid->message;
+            $data['courier_id']         = $contract->bid->user_id;
+            $data['courier_alias']      = $contract->bid->user->known_as;
+            $data['shipper_id']         = $contract->listing->user_id;
+            $data['sender_alias']       = $contract->listing->user->known_as;
+            $data['collected']          = $contract->collected;
+            $data['delivered']          = $contract->delivered;
+            $data['confirmed']          = $contract->confirmed;
+
+            array_push($return_data, $data);
+        }
+
+        return response()->json(['success' => $return_data], 200);
+    }
+
+    public function GetContractsShipper()
+    {
+        $contracts      = Auth::user()->remaining_shipments;
+        $return_data    = array();
+
+        foreach ($contracts as $contract)
+        {
+            $data = array();
+            $data['listing_id']         = $contract->listing_id;
+            $data['bid_id']             = $contract->bid_id;
+            $data['item_description']   = $contract->listing->item_description;
+            $data['bid_amount']         = $contract->bid->amount;
+            $data['bid_message']        = $contract->bid->message;
+            $data['courier_id']         = $contract->bid->user_id;
+            $data['courier_alias']      = $contract->bid->user->known_as;
+            $data['shipper_id']         = $contract->listing->user_id;
+            $data['sender_alias']       = $contract->listing->user->known_as;
+            $data['collected']          = $contract->collected;
+            $data['delivered']          = $contract->delivered;
+            $data['confirmed']          = $contract->confirmed;
+
+            array_push($return_data, $data);
+        }
+
+        return response()->json(['success' => $return_data], 200);
+    }
+
 }

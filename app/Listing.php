@@ -19,6 +19,10 @@ class Listing extends Model
 
     protected $appends = ['max_bid', 'min_bid', 'average_bid'];
 
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
 
     public static function getDistance($from, $to)
     {
