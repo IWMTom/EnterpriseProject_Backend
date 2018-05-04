@@ -35,9 +35,6 @@ Route::group(['middleware' => 'auth:api'], function()
 		Route::post('updatePhoneNumber', 'API\UserController@UpdatePhoneNumber');
 		Route::post('updateUserInfo', 'API\UserController@UpdateUserInfo');
 		Route::post('updateProfilePhoto', 'API\UserController@UpdateProfilePhoto');
-
-		Route::post('{id}/ratings', 'API\RatingController@GetRatings')->where('id', '[0-9]+');
-		Route::post('contracts/courier', 'API\UserController@UpdateProfilePhoto');
 	});
 
 	Route::group(['prefix' => 'listing'], function()
@@ -47,17 +44,15 @@ Route::group(['middleware' => 'auth:api'], function()
 		Route::post('list/radius/{radius}', 'API\ListingController@GetListingsByRadius')->where('radius', '[0-9]+');
 		Route::post('list/user', 'API\ListingController@GetListingsByUser');
 		Route::post('{id}', 'API\ListingController@FindListing')->where('id', '[0-9]+');
-		Route::post('{id}/bids', 'API\ListingController@GetBids')->where('id', '[0-9]+');
 		Route::post('{id}/delete', 'API\ListingController@DeleteListing')->where('id', '[0-9]+');
-		Route::post('{id}/bids/new', 'API\ListingController@NewBid')->where('id', '[0-9]+');
-
 		Route::post('{id}/bids', 'API\ListingController@GetBids')->where('id', '[0-9]+');
+		Route::post('{id}/bids/new', 'API\ListingController@NewBid')->where('id', '[0-9]+');
 	});
 
 	Route::group(['prefix' => 'bid'], function()
 	{
-		Route::post('{id}/delete', 'API\ListingController@DeleteBid')->where('id', '[0-9]+');
 		Route::post('{id}/details', 'API\ListingController@BidDetails')->where('id', '[0-9]+');
+		Route::post('{id}/delete', 'API\ListingController@DeleteBid')->where('id', '[0-9]+');
 		Route::post('{id}/accept', 'API\ListingController@AcceptBid')->where('id', '[0-9]+');
 	});
 

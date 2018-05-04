@@ -81,6 +81,11 @@ class Listing extends Model
         return $this->hasMany('App\Bid', 'listing_id', 'id')->orderBy('amount', 'ASC');
     }
 
+    public function contracts()
+    {
+        return $this->hasMany('App\Contract', 'listing_id', 'id');
+    }
+
     public function getMaxBidAttribute()
     {
     	$amounts = $this->bids->pluck('amount')->toArray();

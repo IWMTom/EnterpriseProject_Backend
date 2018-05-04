@@ -142,7 +142,7 @@ class UserController extends Controller
         }
         else if (!Hash::check($request->current_password, Auth::user()->password))
         {
-            return response()->json(['error' => "Invalid password!"], 200);
+            return response()->json(['error' => "Invalid password!" ], 200);
         }
         else
         {

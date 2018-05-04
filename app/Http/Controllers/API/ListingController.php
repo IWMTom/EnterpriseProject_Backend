@@ -156,6 +156,7 @@ class ListingController extends Controller
         {
             $listing->delete();
             $listing->bids()->delete();
+            $listing->contracts()->delete();
             return response()->json(['success' => array()], 200);
         }
         else
