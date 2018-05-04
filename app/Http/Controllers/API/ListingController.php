@@ -219,7 +219,7 @@ class ListingController extends Controller
     {
         $bid = Bid::find($id);
 
-        if ($bid->user_id == Auth::id())
+        if (Auth::id() == $bid->listing->user_id)
         {
             $bid->delete();
 
