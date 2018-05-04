@@ -60,5 +60,8 @@ Route::group(['middleware' => 'auth:api'], function()
 	{
 		Route::post('list/courier', 'API\ListingController@GetContractsCourier');
 		Route::post('list/shipper', 'API\ListingController@GetContractsShipper');
+		Route::post('{id}/setCollected', 'API\ListingController@SetCollected')->where('id', '[0-9]+');
+		Route::post('{id}/setDelivered', 'API\ListingController@SetDelivered')->where('id', '[0-9]+');
+		Route::post('{id}/setConfirmed', 'API\ListingController@SetConfirmed')->where('id', '[0-9]+');
 	});
 });

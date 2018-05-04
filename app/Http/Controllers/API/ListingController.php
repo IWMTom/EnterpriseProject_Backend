@@ -6,6 +6,7 @@ use App\Bid;
 use App\Http\Controllers\Controller;
 use App\Listing;
 use App\User;
+use App\Contract;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,11 @@ class ListingController extends Controller
         if ($validator->fails())
         {
             return response()->json(['error' => $validator->errors()], 200);            
+        }
+
+        if (Listing::where('user_id', '=', Auth::id())->where('created_at', '>', Carbon::now()->subMinute())->count() > 0)
+        {
+            return response()->json(['error' => "duplicate"], 200);  
         }
 
         $input                      = $request->all();
@@ -72,6 +78,7 @@ class ListingController extends Controller
             ->having('collection_radius', '<', $radius)
             ->having('delivery_radius', '<', $radius)
             ->where('active', '=', '1')
+            ->where('user_id', '!=', Auth::id())
             ->get();
 
         return response()->json(['success' => $listings], 200);
@@ -254,6 +261,7 @@ class ListingController extends Controller
         foreach ($contracts as $contract)
         {
             $data = array();
+            $data['id']                 = $contract->id;
             $data['listing_id']         = $contract->listing_id;
             $data['bid_id']             = $contract->bid_id;
             $data['item_description']   = $contract->listing->item_description;
@@ -262,7 +270,7 @@ class ListingController extends Controller
             $data['courier_id']         = $contract->bid->user_id;
             $data['courier_alias']      = $contract->bid->user->known_as;
             $data['shipper_id']         = $contract->listing->user_id;
-            $data['sender_alias']       = $contract->listing->user->known_as;
+            $data['shipper_alias']      = $contract->listing->user->known_as;
             $data['collected']          = $contract->collected;
             $data['delivered']          = $contract->delivered;
             $data['confirmed']          = $contract->confirmed;
@@ -281,6 +289,7 @@ class ListingController extends Controller
         foreach ($contracts as $contract)
         {
             $data = array();
+            $data['id']                 = $contract->id;
             $data['listing_id']         = $contract->listing_id;
             $data['bid_id']             = $contract->bid_id;
             $data['item_description']   = $contract->listing->item_description;
@@ -289,7 +298,7 @@ class ListingController extends Controller
             $data['courier_id']         = $contract->bid->user_id;
             $data['courier_alias']      = $contract->bid->user->known_as;
             $data['shipper_id']         = $contract->listing->user_id;
-            $data['sender_alias']       = $contract->listing->user->known_as;
+            $data['shipper_alias']      = $contract->listing->user->known_as;
             $data['collected']          = $contract->collected;
             $data['delivered']          = $contract->delivered;
             $data['confirmed']          = $contract->confirmed;
@@ -298,6 +307,57 @@ class ListingController extends Controller
         }
 
         return response()->json(['success' => $return_data], 200);
+    }
+
+    public function SetCollected($id)
+    {
+        $contract = Contract::find($id);
+
+        if (Auth::id() == $contract->bid->user_id)
+        {
+            $contract->collected = 1;
+            $contract->save();
+
+            return response()->json(['success' => array()], 200);
+        }
+        else
+        {
+            return response()->json(['error' => "go away"], 200);
+        }
+    }
+
+    public function SetDelivered($id)
+    {
+        $contract = Contract::find($id);
+
+        if (Auth::id() == $contract->bid->user_id)
+        {
+            $contract->delivered = 1;
+            $contract->save();
+
+            return response()->json(['success' => array()], 200);
+        }
+        else
+        {
+            return response()->json(['error' => "go away"], 200);
+        }
+    }
+
+    public function SetConfirmed($id)
+    {
+        $contract = Contract::find($id);
+
+        if (Auth::id() == $contract->listing->user_id)
+        {
+            $contract->confirmed = 1;
+            $contract->save();
+
+            return response()->json(['success' => array()], 200);
+        }
+        else
+        {
+            return response()->json(['error' => "go away"], 200);
+        }
     }
 
 }
